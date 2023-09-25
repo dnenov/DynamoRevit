@@ -117,6 +117,8 @@
     <Compile Include="Elements\Revision.cs" />
     <Compile Include="Elements\RevisionCloud.cs" />
     <Compile Include="Elements\ScheduleOnSheet.cs" />
+    <Compile Include="Elements\Toposolid.cs" />
+    <Compile Include="Elements\ToposolidType.cs" />
     <Compile Include="Elements\Viewport.cs" />
     <Compile Include="Elements\Space.cs" />
     <Compile Include="Elements\Views\AreaPlanView.cs" />
@@ -156,6 +158,7 @@
     <Compile Include="Elements\Views\Packing\OutOfSpaceException.cs" />
     <Compile Include="Elements\Views\Packing\RectanglePacker.cs" />
     <Compile Include="Elements\FillPatternElement.cs" />
+    <Compile Include="Elements\LinkInstance.cs" />
     <Compile Include="Filter\FilterRule.cs" />
     <Compile Include="Elements\LinePatternElement.cs" />
     <Compile Include="Filter\OverrideGraphicSettings.cs" />
