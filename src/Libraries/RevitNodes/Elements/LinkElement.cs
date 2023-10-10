@@ -1,25 +1,14 @@
-﻿using Autodesk.Revit.DB;
-using System;
-using Revit.Elements;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DynamoUnits;
-using Dynamo.Graph.Nodes;
-using View = Revit.Elements.Views.View;
-using System.Text;
-using System.Threading.Tasks;
-using Level = Revit.Elements.Level;
-using RevitServices.Persistence;
-using Autodesk.Revit.UI;
-using System.Windows;
 using Autodesk.DesignScript.Geometry;
-using Revit.GeometryConversion;
-using System.Windows.Media.Imaging;
-using Point = Autodesk.DesignScript.Geometry.Point;
-using Autodesk.Revit.UI;
-using System.Windows.Media.Media3D;
 using Autodesk.DesignScript.Runtime;
-using System.ComponentModel;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
+using Dynamo.Graph.Nodes;
+using Revit.GeometryConversion;
+using RevitServices.Persistence;
+using Point = Autodesk.DesignScript.Geometry.Point;
 
 namespace Revit.Elements
 {
@@ -30,7 +19,7 @@ namespace Revit.Elements
     {
 
         #region Helpers
-        private static List<RevitLinkInstance> GetLinkInstancesContainingLinkElement(Element linkElement)
+        internal static List<Autodesk.Revit.DB.RevitLinkInstance> GetLinkInstancesContainingLinkElement(Element linkElement)
         {
             Autodesk.Revit.DB.Element revitElement = linkElement.InternalElement;
             // get the document of the linked element
@@ -40,12 +29,12 @@ namespace Revit.Elements
                 .OfCategory(BuiltInCategory.OST_RvtLinks)
                 .WhereElementIsNotElementType()
                 .ToElements()
-                .Cast<RevitLinkInstance>()
+                .Cast<Autodesk.Revit.DB.RevitLinkInstance>()
                 .ToList();
 
             // list to store all instances that match the linked element's document
-            List<RevitLinkInstance> matchingLinkInstances = new List<RevitLinkInstance>();
-            foreach (RevitLinkInstance linkInstance in allLinkInstances)
+            List<Autodesk.Revit.DB.RevitLinkInstance> matchingLinkInstances = new List<Autodesk.Revit.DB.RevitLinkInstance>();
+            foreach (Autodesk.Revit.DB.RevitLinkInstance linkInstance in allLinkInstances)
             {
                 Document linkDoc = linkInstance.GetLinkDocument();
                 if (linkDoc.Equals(linkDocToMatch))
@@ -319,13 +308,13 @@ namespace Revit.Elements
         [NodeCategory("Query")]
         public static CoordinateSystem LinkInverseTransform(Element linkedElement)
         {
-            List<RevitLinkInstance> revitLinkInstances = GetLinkInstancesContainingLinkElement(linkedElement);
+            var revitLinkInstances = GetLinkInstancesContainingLinkElement(linkedElement);
 
-            foreach (RevitLinkInstance revitLinkInstance in revitLinkInstances)
+            foreach (Autodesk.Revit.DB.RevitLinkInstance revitLinkInstance in revitLinkInstances)
             {
-                Transform inverseTransform = revitLinkInstance.GetTotalTransform();
-                CoordinateSystem coordinateSystem = inverseTransform.ToCoordinateSystem();
-                return coordinateSystem;
+                Transform inverseTransform = revitLinkInstance.GetTotalTransform().Inverse;
+                CoordinateSystem cs = inverseTransform.ToCoordinateSystem();
+                return cs;
             }
             return null;
 
