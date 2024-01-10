@@ -26,17 +26,14 @@ using Dynamo.Graph.Workspaces;
 using Dynamo.Logging;
 using Dynamo.Models;
 using Dynamo.Scheduler;
-using Dynamo.Updates;
 using Dynamo.ViewModels;
 using Dynamo.Wpf.Interfaces;
 using DynamoInstallDetective;
 using Greg.AuthProviders;
-using Microsoft.Win32;
 using Newtonsoft.Json;
 using RevitServices.Persistence;
 using RevitServices.Threading;
 using RevitServices.Transactions;
-using DynUpdateManager = Dynamo.Updates.UpdateManager;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Resources = Dynamo.Applications.Properties.Resources;
 
@@ -208,6 +205,7 @@ namespace Dynamo.Applications
     {
         public static ExternalEvent SplashScreenExternalEvent { get; set; }
         public static ExternalEvent DynamoAppExternalEvent { get; set; }
+        private static readonly string DYNAMO_REVIT_HOST_NAME = "Dynamo Revit";
         /// <summary>
         /// Based on the RevitDynamoModelState a dependent component can take certain 
         /// decisions regarding its UI and functionality.
@@ -309,7 +307,8 @@ namespace Dynamo.Applications
             try
             {
                 // Launch main Dynamo directly when ShowUiKey is true.
-                if (CheckJournalForKey(commandData, JournalKeys.ShowUiKey, false))
+                bool bSkipSplashScreen = true; // TODO: remove this when issue with System.Windows.Application.Current not being null
+                if (CheckJournalForKey(commandData, JournalKeys.ShowUiKey, false) || bSkipSplashScreen)
                 {
                     extCommandData = commandData;
                     LoadDynamoWithoutSplashScreen();
@@ -359,7 +358,6 @@ namespace Dynamo.Applications
 
                     // create core data models
                     RevitDynamoModel = InitializeCoreModel(extCommandData);
-                    RevitDynamoModel.UpdateManager.RegisterExternalApplicationProcessId(Process.GetCurrentProcess().Id);
                     RevitDynamoModel.Logger.Log("SYSTEM", string.Format("Environment Path:{0}", Environment.GetEnvironmentVariable("PATH")));
 
                     // handle initialization steps after RevitDynamoModel is created in UIless mode
@@ -396,7 +394,6 @@ namespace Dynamo.Applications
         {
             // create core data models
             RevitDynamoModel = InitializeCoreModel(extCommandData);
-            RevitDynamoModel.UpdateManager.RegisterExternalApplicationProcessId(Process.GetCurrentProcess().Id);
             RevitDynamoModel.Logger.Log("SYSTEM", string.Format("Environment Path:{0}", Environment.GetEnvironmentVariable("PATH")));
 
             // handle initialization steps after RevitDynamoModel is created.
@@ -445,7 +442,6 @@ namespace Dynamo.Applications
         {
             // Create core data models
             RevitDynamoModel = InitializeCoreModel(extCommandData);
-            RevitDynamoModel.UpdateManager.RegisterExternalApplicationProcessId(Process.GetCurrentProcess().Id);
             RevitDynamoModel.Logger.Log("SYSTEM", string.Format("Environment Path:{0}", Environment.GetEnvironmentVariable("PATH")));
 
             // Handle initialization steps after RevitDynamoModel is created.
@@ -548,12 +544,16 @@ namespace Dynamo.Applications
             // Assume Revit Install folder as look for root. Assembly name is compromised.
             var assemblyList = new[]
             {
-                "SDA\\bin\\ICSharpCode.AvalonEdit.dll"
+                //"SDA\\bin\\ICSharpCode.AvalonEdit.dll"
+                "Addins\\DynamoForRevit\\ICSharpCode.AvalonEdit.dll"
             };
 
             foreach (var assembly in assemblyList)
             {
                 var assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, assembly);
+                // TODO: remove this when the above will work
+                if (!File.Exists(assemblyPath))
+                    assemblyPath = Path.Combine(Path.GetDirectoryName(Environment.ProcessPath), assembly);
                 if (File.Exists(assemblyPath))
                     Assembly.LoadFrom(assemblyPath);
             }
@@ -571,14 +571,10 @@ namespace Dynamo.Applications
             // get Dynamo Revit Version
             var dynRevitVersion = Assembly.GetExecutingAssembly().GetName().Version;
 
-            var umConfig = UpdateManagerConfiguration.GetSettings(new DynamoRevitLookUp());
-            var revitUpdateManager = new DynUpdateManager(umConfig);
-            revitUpdateManager.HostVersion = dynRevitVersion; // update RevitUpdateManager with the current DynamoRevit Version
-            revitUpdateManager.HostName = "Dynamo Revit";
-            if (revitUpdateManager.Configuration is IDisableUpdateConfig)
-                (revitUpdateManager.Configuration as IDisableUpdateConfig).DisableUpdates = true;
-
-            Debug.Assert(umConfig.DynamoLookUp != null);
+            HostAnalyticsInfo hostAnalyticsInfo = new HostAnalyticsInfo { 
+                HostName = DYNAMO_REVIT_HOST_NAME,
+                HostVersion = dynRevitVersion
+            };
 
             var userDataFolder = Path.Combine(Environment.GetFolderPath(
                 Environment.SpecialFolder.ApplicationData),
@@ -606,14 +602,18 @@ namespace Dynamo.Applications
                 StartInTestMode = isAutomationMode,
                 AuthProvider = new RevitOAuth2Provider(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher)),
                 ExternalCommandData = commandData,
-                UpdateManager = revitUpdateManager,
-                ProcessMode = isAutomationMode ? TaskProcessMode.Synchronous : TaskProcessMode.Asynchronous
+                ProcessMode = isAutomationMode ? TaskProcessMode.Synchronous : TaskProcessMode.Asynchronous,
+                HostAnalyticsInfo = hostAnalyticsInfo
             });
         }
 
         internal static Version PreloadAsmFromRevit()
         {
             var asmLocation = AppDomain.CurrentDomain.BaseDirectory;
+            // TODO: remove this when above will work
+            if (string.IsNullOrEmpty(asmLocation))
+                asmLocation = Path.GetDirectoryName(Environment.ProcessPath);
+            
             Version libGVersion = findRevitASMVersion(asmLocation);
             var dynCorePath = DynamoRevitApp.DynamoCorePath;
             // Get the corresponding libG preloader location for the target ASM loading version.
@@ -829,6 +829,8 @@ namespace Dynamo.Applications
             // Change the locale that LibG depends on.
             StringBuilder sb = new StringBuilder("LANGUAGE=");
             var revitLocale = System.Globalization.CultureInfo.CurrentUICulture.ToString();
+            // Record host locale for locale switching in DynamoCore
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.CurrentUICulture;
             sb.Append(revitLocale.Replace("-", "_"));
             _putenv(sb.ToString());
 
@@ -1013,7 +1015,7 @@ namespace Dynamo.Applications
         }
 
         [DllImport("msvcrt.dll")]
-        public static extern int _putenv(string env);
+        internal static extern int _putenv(string env);
 
         #endregion
 
@@ -1127,44 +1129,6 @@ namespace Dynamo.Applications
                     idleActions.Add(a);
                 }
             }
-        }
-    }
-
-    internal class DynamoRevitLookUp : DynamoLookUp
-    {
-        public override IEnumerable<string> GetDynamoInstallLocations()
-        {
-            const string regKey64 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\";
-            //Open HKLM for 64bit registry
-            var regKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            //Open Windows/CurrentVersion/Uninstall registry key
-            regKey = regKey.OpenSubKey(regKey64);
-
-            //Get "InstallLocation" value as string for all the subkey that starts with "Dynamo"
-            return regKey.GetSubKeyNames().Where(s => s.StartsWith("Dynamo")).Select(
-                (s) => regKey.OpenSubKey(s).GetValue("InstallLocation") as string);
-        }
-
-        public override IEnumerable<string> GetDynamoUserDataLocations()
-        {
-            var appDatafolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
-            var paths = new List<string>();
-            //Pre 1.0 Dynamo Studio user data was stored at %appdata%\Dynamo\
-            var dynamoFolder = Path.Combine(appDatafolder, "Dynamo");
-            if (Directory.Exists(dynamoFolder))
-            {
-                paths.AddRange(Directory.EnumerateDirectories(dynamoFolder));
-            }
-
-            //From 1.0 onwards Dynamo Studio user data is stored at %appdata%\Dynamo\Dynamo Revit\
-            var revitFolder = Path.Combine(dynamoFolder, "Dynamo Revit");
-            if (Directory.Exists(revitFolder))
-            {
-                paths.AddRange(Directory.EnumerateDirectories(revitFolder));
-            }
-
-            return paths;
         }
     }
 

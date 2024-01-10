@@ -13,7 +13,7 @@ namespace DynamoAddinGenerator
     class Program
     {
         private static string debugPath = string.Empty;
-
+        
         static void Main(string[] args)
         {
             bool uninstall = false;
@@ -26,7 +26,7 @@ namespace DynamoAddinGenerator
                 else if (Directory.Exists(s))
                 {
                     debugPath = s;
-                }      
+                }
             }
 
             if (uninstall && string.IsNullOrEmpty(debugPath))
@@ -130,7 +130,7 @@ namespace DynamoAddinGenerator
                 }
                 foreach (KeyValuePair<string, Tuple<int, int, int, int>> dynRevitProd in dynRevitProducts)
                 {
-                    if(dynRevitProd.Key == excludePath)
+                    if (dynRevitProd.Key == excludePath)
                     {
                         continue;
                     }
@@ -186,10 +186,12 @@ namespace DynamoAddinGenerator
 
             // Grant everyone permissions to delete this addin.
             //http://stackoverflow.com/questions/5298905/add-everyone-privilege-to-folder-using-c-net/5398398#5398398
-            var sec = File.GetAccessControl(data.AddinPath);
+
+            var fi = new FileInfo(data.AddinPath);
+            var sec = FileSystemAclExtensions.GetAccessControl(fi);
             var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
             sec.AddAccessRule(new FileSystemAccessRule(everyone, FileSystemRights.FullControl, AccessControlType.Allow));
-            File.SetAccessControl(data.AddinPath, sec);
+            FileSystemAclExtensions.SetAccessControl(fi, sec);
         }
     }
 }

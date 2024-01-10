@@ -18,9 +18,10 @@ using RevitServices.Persistence;
 
 using Transaction = Autodesk.Revit.DB.Transaction;
 using DoubleSlider = CoreNodeModels.Input.DoubleSlider;
-using IntegerSlider = CoreNodeModels.Input.IntegerSlider;
 using Utils = RevitServices.Elements.ElementUtils;
 using Dynamo.Graph.Nodes;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace RevitSystemTests
 {
@@ -107,7 +108,7 @@ namespace RevitSystemTests
             if (!traceDataList.Any())
                 return null;
             var data = traceDataList[0].GetLeftMostData();
-            var id = data as SerializableId;
+            var id = JsonConvert.DeserializeObject<SerializableId>(data);
             return new ElementId(id.IntID);
         }
 
@@ -178,71 +179,6 @@ namespace RevitSystemTests
         }
 
         [Test]
-        [TestModel(@".\ElementBinding\CreateWallInDynamo.rvt")]
-        public void VerifyJsonRestoresExpectedBinding()
-        {
-            // Test variables
-            int wallElementCountPresave;
-            int wallElementCountPostsave;
-            ElementId wallElementIdPresave;
-            ElementId wallElementIdPostsave;
-
-            // Load Dynamo xml file containing trace data
-            string dynFilePath = Path.Combine(workingDirectory, @".\ElementBinding\CreateWallInDynamo.dyn");
-            string testPath = Path.GetFullPath(dynFilePath);
-            ViewModel.OpenCommand.Execute(testPath);
-
-            // Run
-            RunCurrentModel();
-
-            // Get binding element id for wall node presave
-            var selNodes = ViewModel.Model.CurrentWorkspace.Nodes.Where(x => string.Equals(x.GUID.ToString(), "b568d298-f7be-4619-99a1-cae16efaed58"));
-            Assert.IsTrue(selNodes.Any());
-            var node = selNodes.First();
-            wallElementIdPresave = GetBindingElementIdForNode(node.GUID);
-
-            // Get initial wall count
-            var doc = DocumentManager.Instance.CurrentUIDocument.Document;
-            IEnumerable<Element> wallsPresave = Utils.AllElementsOfType<Wall>(doc);
-            wallElementCountPresave = wallsPresave.Count();
-
-            // Save in temp location
-            string tempPath = Path.Combine(workingDirectory, @".\ElementBinding\CreateWallInDynamo_temp.dyn");
-            ViewModel.SaveAsCommand.Execute(tempPath);
-
-            // Close workspace
-            Assert.IsTrue(ViewModel.CloseHomeWorkspaceCommand.CanExecute(null));
-            ViewModel.CloseHomeWorkspaceCommand.Execute(null);
-
-            // Open Json temp file
-            dynFilePath = Path.Combine(workingDirectory, @".\ElementBinding\CreateWallInDynamo_temp.dyn");
-            testPath = Path.GetFullPath(dynFilePath);
-            ViewModel.OpenCommand.Execute(testPath);
-
-            // Run
-            RunCurrentModel();
-
-            // Get binding element id for wall node postsave
-            selNodes = ViewModel.Model.CurrentWorkspace.Nodes.Where(x => string.Equals(x.GUID.ToString(), "b568d298-f7be-4619-99a1-cae16efaed58"));
-            Assert.IsTrue(selNodes.Any());
-            node = selNodes.First();
-            wallElementIdPostsave = GetBindingElementIdForNode(node.GUID);
-
-            // Get wall count upon reopening to verify no duplicate walls exist
-            doc = DocumentManager.Instance.CurrentUIDocument.Document;
-            IEnumerable<Element> wallsPostsave = Utils.AllElementsOfType<Wall>(doc);
-            wallElementCountPostsave = wallsPostsave.Count();
-
-            // Verify xml results against json
-            Assert.AreEqual(wallElementIdPresave, wallElementIdPostsave);
-            Assert.AreEqual(wallElementCountPresave, wallElementCountPostsave);
-
-            // Close work space and delete temp file
-            ViewModel.CloseHomeWorkspaceCommand.Execute(null);
-            File.Delete(tempPath);
-        }
-
-        [Test]
         [TestModel(@".\empty.rfa")]
         public void CreateInDynamoModifyInRevitReRun()
         {
@@ -307,7 +243,7 @@ namespace RevitSystemTests
         }
 
         // TODO: Re-enable the test when open workspace in JSON is enabled.
-        [Test, Ignore]
+        [Test, Ignore("Was disabled 6 years ago, TODO - check if it should be re-enabled")]
         [TestModel(@".\empty.rfa")]
         public void CreateInDynamoSaveCloseGraphReopenGraphRerun()
         {
@@ -388,7 +324,7 @@ namespace RevitSystemTests
             Assert.IsTrue(!id1.Equals(id2));
         }
 
-        [Test, Ignore]
+        [Test, Ignore("Not finished")]
         [TestModel(@".\empty.rfa")]
         public void CreateInDynamoUndoInRevit()
         {
@@ -406,7 +342,7 @@ namespace RevitSystemTests
             Assert.Inconclusive("TO DO");
         }
 
-        [Test, Ignore]
+        [Test, Ignore("Not finished")]
         [TestModel(@".\ElementBinding\BindingCloseReopen.rvt")]
         public void SelectElementCloseReopenDocument()
         {
@@ -441,14 +377,14 @@ namespace RevitSystemTests
             Assert.AreEqual(true, GetPreviewValue("6e4abc3b-83fd-44fe-821b-447f1ec0a56c"));
         }
 
-        [Test, Ignore]
+        [Test, Ignore("Not finished")]
         [TestModel(@".\ElementBinding\BindingCloseReopen.rvt")]
         public void SelectElementFromFamilyDocumentSwitchToProjectDocument()
         {            
             Assert.Inconclusive("TO DO");
         }
 
-        [Test, Ignore]
+        [Test, Ignore("Not finished")]
         [TestModel(@".\empty.rfa")]
         public void CreateInRevitSelectInDynamoUndoInRevit()
         {
@@ -557,7 +493,7 @@ namespace RevitSystemTests
             var selNodes = model.CurrentWorkspace.Nodes.Where(x => string.Equals(x.GUID.ToString(), "a52bee11-4382-4c42-a676-443f9d7eedf2"));
             Assert.IsTrue(selNodes.Any());
             var node = selNodes.First();
-            var slider = node as IntegerSlider;
+            var slider = node as IntegerSlider64Bit;
 
             //Change the slider value from 4 to 3
             slider.Value = 3;
@@ -572,7 +508,7 @@ namespace RevitSystemTests
             Assert.AreEqual(6, points.Count);
         }
 
-        [Test, Ignore]
+        [Test, Ignore("Not finished")]
         [TestModel(@".\empty.rfa")]
         public void CreateDifferentNumberOfElementsInDynamoWithDifferentLacingStrategies()
         {
@@ -677,7 +613,7 @@ namespace RevitSystemTests
             var selNodes = model.CurrentWorkspace.Nodes.Where(x => string.Equals(x.GUID.ToString(), "7cc9bd94-7f46-4520-8a47-60baf4419087"));
             Assert.IsTrue(selNodes.Any());
             var node = selNodes.First();
-            var slider = node as IntegerSlider;
+            var slider = node as IntegerSlider64Bit;
 
             //Change the slider value to 10
             slider.Value = 10;
@@ -797,7 +733,8 @@ namespace RevitSystemTests
             NodeModel adaptiveCompNode = model.CurrentWorkspace.Nodes.Where(x => x.Name == "AdaptiveComponent.ByPoints").First();
 
             var doc = DocumentManager.Instance.CurrentDBDocument;
-            var familyInstances = Utils.AllElementsOfType<FamilyInstance>(doc);
+            var familyInstances = Utils.AllElementsOfType<FamilyInstance>(doc).Where(x=>x.Name.Contains("3PointAC_SquareTruss"));
+            Assert.AreEqual(9, familyInstances.Count());
             Assert.AreEqual(9,adaptiveCompNode.GetValue(0, model.EngineController).GetElements().Select(x=>x.Data).ToList().Count);
         }
 

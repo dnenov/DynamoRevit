@@ -1,3 +1,71 @@
+## 0.5.24
+* Fixed build warnings in master branch
+
+## 0.5.23
+* RC for Revit2025
+* Removed configuration for .NET 7
+
+## 0.5.22
+* Update Dynamo Core to 3.0.0.7190
+
+## 0.5.21
+* Incorrect Category returned by Category.ByName node
+
+## 0.5.20
+* (re-)enable Dynamo Splash Screen
+
+## 0.5.19
+* Update / Change Dynamo Core to 3.0.0-beta7040
+
+## 0.5.18
+* Migrate to .NET 8
+* Update Dynamo Core to 3.0.0-beta6975 (.NET 8)
+## 0.5.17
+* Update Dynamo Core to 3.0.0-beta7044
+
+## 0.5.16
+* Update Dynamo Core to 3.0.0-beta6964
+* Replace Trace Data from SOAP to JSON
+
+## 0.5.15
+* Update Dynamo Core to 3.0.0-beta6885
+* Drop SOAP formatter and move to JSON based serialization 
+
+## 0.5.14
+* Update Dynamo Core to 3.0.0-beta6827
+
+## 0.5.13
+* Update Dynamo Core to 3.0.0-beta6764
+* Add HostAnalyticsInfo to pass host related info
+
+## 0.5.12
+* Update Dynamo Core to 3.0.0-beta6680
+
+## 0.5.11
+* Update Dynamo Core to 3.0.0-beta6634, Greg, and RestSharp
+* fix missing DYnamoInstallDetective.dll
+* fix yes/no (long type) value for global parameters not being set properly
+
+## 0.5.10
+* Fixed issue for node FamilyDocument.SetParameterValueByName that cannot be used for Yes/No family parameters
+
+## 0.5.9
+* merge master (linkInstance wrappers, documentation)
+* update NUnit to 3.13.3 - work in progress
+
+## 0.5.7
+* disable splashcreen due to System.Windows.Application.Current not being null not being null
+
+## 0.5.6
+* enable splashcreen
+* update NUnit to 3.13.3
+
+## 0.5.5
+* Fix some .net7 build issues
+
+## 0.5.3
+* Migrade DynamoRevit to .NET 7.0
+
 ## 0.4.14
 * Upgrade DynamoCore version to 2.17.0-beta3141.
 
