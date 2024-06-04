@@ -1,3 +1,59 @@
+## 0.6.19
+* Fix regression test for FamilyInstance.ByGeometry node
+
+## 0.6.18
+* Fix regression on FamilyInstance.ByGeometry node
+
+## 0.6.17
+* Version back DynamoRevit to 3.1
+
+## 0.6.16
+* Improved FilterRule.ByRuleType node to use the same data type for the value and the parameter value that it takes as input
+
+## 0.6.15
+* Update Dynamo Core to 3.1.0
+* Update DynamoRevit version to 2026.0.0
+
+## 0.6.14
+* Add extra protection in FilterRule.ByRuleType node to prevent invalid data type casting in Revit
+
+## 0.6.13
+* Fix CurtainPanel.ByElements displaying invalid ElementIds when Curtain Panels have their types changed to a different wall
+
+## 0.6.12
+* Fix CurtainPanel.ByElements failing to return when there is a door or window present in the curtain wall
+
+## 0.6.11
+* Update Dynamo Core to 3.0.4.7905
+
+## 0.6.10
+* Fix Dynamo not loading due to Python engine errors
+
+## 0.6.9
+* Update Dynamo Core to 3.0.3.7597
+
+## 0.6.8
+* Fix 3 broken DynamoRevit tests
+
+## 0.6.7
+* Fix a couple of regression tests
+
+## 0.6.6
+* Update DynamoRevit versioning to 3.0.2
+
+## 0.6.5
+* Update Dynamo Core to 3.0.2.7476
+
+## 0.6.4
+* Update sign files (internal process) - no actual changes here
+
+## 0.6.2
+* Fix two failed tests
+
+## 0.6.1
+* Target for Revit 2026
+* Update GregRevitAuth to 2.0.8776.26607
+
 ## 0.5.24
 * Fixed build warnings in master branch
 

@@ -307,7 +307,7 @@ namespace Dynamo.Applications
             try
             {
                 // Launch main Dynamo directly when ShowUiKey is true.
-                bool bSkipSplashScreen = true; // TODO: remove this when issue with System.Windows.Application.Current not being null
+                bool bSkipSplashScreen = false; // TODO: remove this when issue with System.Windows.Application.Current not being null
                 if (CheckJournalForKey(commandData, JournalKeys.ShowUiKey, false) || bSkipSplashScreen)
                 {
                     extCommandData = commandData;
@@ -394,6 +394,7 @@ namespace Dynamo.Applications
         {
             // create core data models
             RevitDynamoModel = InitializeCoreModel(extCommandData);
+            RevitDynamoModel.OnDetectLanguage();
             RevitDynamoModel.Logger.Log("SYSTEM", string.Format("Environment Path:{0}", Environment.GetEnvironmentVariable("PATH")));
 
             // handle initialization steps after RevitDynamoModel is created.
@@ -1053,9 +1054,7 @@ namespace Dynamo.Applications
             try
             {
                 DynamoModel.IsCrashing = true;
-                RevitDynamoModel.OnRequestsCrashPrompt(
-                    RevitDynamoModel,
-                    new CrashPromptArgs(args.Exception.Message + "\n\n" + args.Exception.StackTrace));
+                RevitDynamoModel.OnRequestsCrashPrompt(new CrashErrorReportArgs(args.Exception));
                 RevitDynamoViewModel.Exit(false); // don't allow cancellation
             }
             catch { }
