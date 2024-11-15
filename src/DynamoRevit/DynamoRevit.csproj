@@ -61,11 +61,11 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Greg">
-      <HintPath>$(PACKAGESPATH)\Greg\lib\net6.0\Greg.dll</HintPath>
+      <HintPath>$(PACKAGESPATH)\Greg\lib\net8.0\Greg.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="GregRevitAuth">
-      <HintPath>$(PACKAGESPATH)\GregRevitAuth\lib\net6.0\GregRevitAuth.dll</HintPath>
+      <HintPath>$(PACKAGESPATH)\GregRevitAuth\lib\net8.0\GregRevitAuth.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
@@ -75,10 +75,6 @@
     <Reference Include="ProtoGeometry">
       <HintPath Condition="!Exists('$(DYNAMOBUILDPATH)') ">$(PACKAGESPATH)\DynamoVisualProgramming.ZeroTouchLibrary\lib\$(DCoreLibSubFolder)\ProtoGeometry.dll</HintPath>
       <HintPath Condition=" Exists('$(DYNAMOBUILDPATH)') ">$(DYNAMOBUILDPATH)\ProtoGeometry.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Python.Runtime">
-      <HintPath>$(PACKAGESPATH)\pythonnet\lib\net40\Python.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPI">

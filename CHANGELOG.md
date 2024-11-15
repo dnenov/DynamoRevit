@@ -1,3 +1,38 @@
+## 0.6.30
+* Update Dynamo Core to 3.4.0-beta6752
+* Move D4R content to en-US folders
+
+## 0.6.29
+* Disable Dynamo Splashscreen for Revit 2026
+* Update FilterRule.ByRuleType node to not use deprecated functions
+* Update Dynamo Core to 3.4.0-beta6616
+* Remove python runtime dependency
+
+## 0.6.27
+* Update Dynamo Core to 3.3.0.6316
+* Add node documentation: Parameter, Element, Room, Material, Views 
+
+## 0.6.26
+* Use new function to get translated string of Warning Severity
+
+## 0.6.25
+* update Dynamo Core to 3.2.2
+
+## 0.6.24
+* Fix Roof.Points raising an invalid argument exception by adding a wrapper over RoofBase Revit class to Roof D4R class 
+
+## 0.6.23
+* Add OOTB template files for Revit 2026+ as well
+
+## 0.6.22
+* Update Dynamo to 3.2.1 and RevitGregAuth
+
+## 0.6.21
+* Add the support of the subelement and its parameters.
+
+## 0.6.20
+* Update Dynamo to 3.2.0
+
 ## 0.6.19
 * Fix regression test for FamilyInstance.ByGeometry node
 
